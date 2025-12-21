@@ -14,16 +14,18 @@ def get_accounts_by_customer(db: Session, customer_id: int):
 def get_account_by_id(db: Session, account_id: int):
     return db.query(Account).filter(Account.id == account_id).first()
 
-# UPDATED: Removed db.commit() to allow atomic transactions in routes
+# --- NEW: Get by Account Number (For Transfers) ---
+def get_account_by_number(db: Session, account_number: str):
+    return db.query(Account).filter(Account.account_number == account_number).first()
+
+# --- NEW: Lock Row (For Safety) ---
+def get_account_for_update(db: Session, account_id: int):
+    return db.query(Account).filter(Account.id == account_id).with_for_update().first()
+
 def update_balance(db: Session, account: Account, amount: float):
     account.balance += amount
     db.add(account)
     return account
-
-# UPDATED: Removed db.commit() to allow atomic transactions in routes
-def create_transaction(db: Session, transaction: Transaction):
-    db.add(transaction)
-    return transaction
 
 def delete_account(db: Session, account_id: int):
     account = get_account_by_id(db, account_id)

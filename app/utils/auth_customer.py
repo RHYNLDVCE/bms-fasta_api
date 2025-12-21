@@ -2,23 +2,16 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
 
 from app.core.database import get_db
 from app.models.customer import Customer
 from app.crud.customer import get_customer_by_id
 from app.core.config import settings
+# --- NEW: Use shared token generator ---
+from app.utils.jwt import create_access_token as create_customer_access_token
 
 # OAuth2 scheme for customer login
-customer_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/customers/login",scheme_name="CustomerOAuth2")
-
-# JWT creation for customer
-def create_customer_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-    return encoded_jwt
+customer_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/customers/login", scheme_name="CustomerOAuth2")
 
 # Dependency to get current logged-in customer
 def get_current_customer(token: str = Depends(customer_oauth2_scheme), db: Session = Depends(get_db)) -> Customer:

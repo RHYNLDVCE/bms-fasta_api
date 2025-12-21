@@ -6,7 +6,8 @@ from app.schemas.customer import CustomerCreate, CustomerResponse, TokenResponse
 from app.models.customer import Customer
 from app.crud.customer import create_customer, get_customer_by_email
 from app.utils.security import hash_password, verify_password
-from app.utils.auth_customer import create_customer_access_token
+# --- UPDATED IMPORT: Added get_current_customer ---
+from app.utils.auth_customer import create_customer_access_token, get_current_customer
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
 
@@ -56,3 +57,8 @@ def login_customer(
     })
 
     return TokenResponse(access_token=access_token)
+
+# --- NEW: Get Current User Profile ---
+@router.get("/me", response_model=CustomerResponse)
+def read_users_me(current_user: Customer = Depends(get_current_customer)):
+    return current_user

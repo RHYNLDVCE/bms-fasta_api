@@ -1,18 +1,25 @@
-from sqlalchemy import Integer, String, Float, ForeignKey, DateTime
+from __future__ import annotations
+from typing import TYPE_CHECKING
+from sqlalchemy import Integer, String, Float, ForeignKey, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.core.database import Base
-# from app.models.customer import Customer # (Assuming this import exists)
+
+if TYPE_CHECKING:
+    from app.models.customer import Customer
 
 class Account(Base):
     __tablename__ = "accounts"
+    
+    # Prevent negative balances at the database level
+    __table_args__ = (
+        CheckConstraint('balance >= 0', name='check_positive_balance'),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     
-    # --- NEW FIELD ---
-    # Unique 9-digit number. String is preferred for identifiers to avoid math operations on them.
+    # Unique 9-digit number
     account_number: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False) 
-    # -----------------
 
     customer_id: Mapped[int] = mapped_column(Integer, ForeignKey("customers.id"), nullable=False)
     account_type: Mapped[str] = mapped_column(String, nullable=False)

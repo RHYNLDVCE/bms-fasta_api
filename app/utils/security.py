@@ -9,4 +9,7 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(truncated)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    # --- FIX: Truncate here too ---
+    # We must compare the hash of the *truncated* input against the stored hash.
+    truncated = plain_password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+    return pwd_context.verify(truncated, hashed_password)
