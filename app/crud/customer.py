@@ -15,3 +15,11 @@ def get_customer_by_email(db: Session, email: str):
 
 def get_customer_by_id(db: Session, customer_id: int):
     return db.query(Customer).filter(Customer.id == customer_id).first()
+
+def delete_customer(db: Session, customer_id: int):
+    customer = get_customer_by_id(db, customer_id)
+    if customer:
+        db.delete(customer)
+        db.commit()
+        return True
+    return False

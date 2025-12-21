@@ -44,6 +44,7 @@ app = FastAPI(title="Banking Management System", lifespan=lifespan)
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:5174",
     "https://your-frontend-url.onrender.com", # Add your deployed frontend URL here later
 ]
 

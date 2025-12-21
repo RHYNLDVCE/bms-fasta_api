@@ -6,10 +6,10 @@ class AccountCreate(BaseModel):
 
 class AccountResponse(BaseModel):
     id: int
+    account_number: str  # <--- Added this field
     account_type: str
     balance: float
     status: str
 
     class Config:
         from_attributes = True
-

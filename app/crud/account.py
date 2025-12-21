@@ -24,3 +24,11 @@ def update_balance(db: Session, account: Account, amount: float):
 def create_transaction(db: Session, transaction: Transaction):
     db.add(transaction)
     return transaction
+
+def delete_account(db: Session, account_id: int):
+    account = get_account_by_id(db, account_id)
+    if account:
+        db.delete(account)
+        db.commit()
+        return True
+    return False
