@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import random
 import requests 
+from pydantic import BaseModel # <--- Added for the lookup response model
 
 from app.core.database import get_db
 from app.core.config import settings
@@ -22,8 +23,39 @@ from app.utils.auth_customer import get_current_customer
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
+# --- NEW: Schema for Lookup Response ---
+class AccountLookupResponse(BaseModel):
+    account_number: str
+    owner_name: str
+
 def generate_account_number():
     return "".join([str(random.randint(0, 9)) for _ in range(9)])
+
+# --- NEW: Lookup Endpoint ---
+@router.get("/lookup/{account_number}", response_model=AccountLookupResponse)
+def lookup_account_owner(
+    account_number: str,
+    db: Session = Depends(get_db),
+    current_customer: Customer = Depends(get_current_customer)
+):
+    # 1. Find the account
+    account = get_account_by_number(db, account_number)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    # 2. Find the owner
+    owner = db.query(Customer).filter(Customer.id == account.customer_id).first()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Account owner not found")
+
+    # 3. Censor the name (e.g., "John Doe" -> "J*** D***")
+    def censor(name):
+        if not name: return "***"
+        return name[0] + "***" if len(name) > 0 else "***"
+        
+    censored_name = f"{censor(owner.first_name)} {censor(owner.last_name)}"
+    
+    return {"account_number": account.account_number, "owner_name": censored_name}
 
 @router.post("/", response_model=AccountResponse)
 def create_customer_account(
